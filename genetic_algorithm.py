@@ -1,5 +1,11 @@
 # file with genetic algorithm
 
+def imgRGB2chromosome():
+    raise NotImplementedError
+
+def chromosome2imgRGB():
+    raise NotImplementedError
+
 def fitness_function():
     raise NotImplementedError
 
