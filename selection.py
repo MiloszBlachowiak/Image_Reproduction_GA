@@ -8,7 +8,7 @@ def roulette_wheel(population, qualities, number_of_parents):
 
 
 def rank(population, qualities, number_of_parents):
-    ranking_id = np.argsort(qualities)
+    ranking_id = np.argsort(np.dot(qualities, -1))
     return population[ranking_id][:number_of_parents]
 
 

@@ -5,7 +5,7 @@ from math import ceil
    
 
 # single operation of single-point crossover    
-def single_point(parent_one: np.ndarray, parent_two: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def single_point(parent_one: np.ndarray, parent_two: np.ndarray):
 
     size = parent_one.size
     point = np.random.randint(1, size)
@@ -17,7 +17,7 @@ def single_point(parent_one: np.ndarray, parent_two: np.ndarray) -> tuple[np.nda
 
 
 # single operation of two-point crossover
-def two_point(parent_one: np.ndarray, parent_two: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def two_point(parent_one: np.ndarray, parent_two: np.ndarray):
     size = parent_one.size
 
     # randomly picking two crossover points

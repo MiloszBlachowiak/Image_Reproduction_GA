@@ -7,6 +7,7 @@ from typing import Tuple
 import crossover
 import mutation
 import population_initialization
+import selection
 
 
 def imgRGB2chromosome(img: np.array) -> np.array:
@@ -22,31 +23,38 @@ def fitness_function(img_array: np.array, chromosome_array: np.array) -> float:
 
 
 # jako parametry ogólniki: selection_method zamiast wypisania konkretnej metody
-def reproduce_image(image_path: str, reproduced_image_path: str,  iter_num: int,
-                    selection_method: str, mutation_method: str) -> None:
+def reproduce_image(image_path: str, iter_num: int, reproduced_image_path: str=None,  
+                    selection_method: str=None, mutation_method: str=None) -> None:
     img = cv2.imread(image_path)
 
     img_shape = img.shape
 
     chromosome = imgRGB2chromosome(img)
 
-    population = population_initialization.random(chromosome)
+    population = population_initialization.random(img.shape)
+
 
     for iter in range(iter_num):
 
         fitness_function_values = []
         for individual in range(population.shape[0]):
-            fitness_function_values[individual] = (individual, fitness_function(img, population[individual, :]))
+            fitness_function_values.append(fitness_function(chromosome, population[individual]))
 
-        fitness_function_highest_values = [i for i in sorted(fitness_function_values, key=lambda x: x[1])[0]]
+        mating_pool = selection.rank(population, fitness_function_values, 4)
 
-        population = crossover.perform_crossover(population[fitness_function_highest_values[5], :])
+        population = crossover.perform_crossover(mating_pool, number_of_offsprings=8)
 
-        population = mutation.replacement(population)
+        population = mutation.random_change(population, 0.01)
 
-    reproduced_image = chromosome2imgRGB(population, img_shape)
 
-    cv2.imwrite('reproduced_image', reproduced_image)
+    fitness_function_values = []
+    for individual in range(population.shape[0]):
+            fitness_function_values.append(fitness_function(chromosome, population[individual]))
+
+    chromosome = selection.rank(population, fitness_function_values, 1)
+    reproduced_image = chromosome2imgRGB(chromosome, img_shape)
+
+    cv2.imwrite('reproduced_image.jpg', reproduced_image)
 
 
 # function which connects algorithm implementation with gui
