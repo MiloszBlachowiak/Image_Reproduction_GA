@@ -36,20 +36,19 @@ def reproduce_image(image_path: str, iter_num: int, reproduced_image_path: str=N
 
     for iter in range(iter_num):
 
-        fitness_function_values = []
-        for individual in range(population.shape[0]):
-            fitness_function_values.append(fitness_function(chromosome, population[individual]))
+        fitness_function_values = np.zeros(population.shape[0])
+        for individual_idx in range(population.shape[0]):
+            fitness_function_values[individual_idx] = fitness_function(chromosome, population[individual_idx])
 
-        mating_pool = selection.rank(population, fitness_function_values, 4)
+        mating_pool = selection.tournament(population, fitness_function_values, 4)
 
         population = crossover.perform_crossover(mating_pool, number_of_offsprings=8)
 
         population = mutation.random_change(population, 0.01)
 
-
-    fitness_function_values = []
-    for individual in range(population.shape[0]):
-            fitness_function_values.append(fitness_function(chromosome, population[individual]))
+    fitness_function_values = np.zeros(population.shape[0])
+    for individual_idx in range(population.shape[0]):
+        fitness_function_values[individual_idx] = fitness_function(chromosome, population[individual_idx])
 
     chromosome = selection.rank(population, fitness_function_values, 1)
     reproduced_image = chromosome2imgRGB(chromosome, img_shape)
