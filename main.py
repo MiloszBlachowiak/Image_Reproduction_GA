@@ -1,8 +1,7 @@
-import genetic_algorithm
+from genetic_algorithm import run_program
 
 def main():
-    image_path = "tangerines.jpg"
-    genetic_algorithm.reproduce_image(image_path, 10000)
+    run_program()
 
 
 if __name__ == '__main__':
