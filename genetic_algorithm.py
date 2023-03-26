@@ -42,24 +42,37 @@ def reproduce_image(image_path: str, iter_num: int, selection_method, crossover_
     chromosome_base = imgRGB2chromosome(img)
 
     population = population_initialization.random(img.shape)
-
+   
+    best_chromosome = population[0]
 
     for iter in range(iter_num):
 
         fitness_function_values = calculate_population_fitness(population, chromosome_base)
+        
+        best_chromosome_candidate = choose_best_chromosome(population, fitness_function_values)
+        
+        if fitness_function(chromosome_base, best_chromosome_candidate) > fitness_function(chromosome_base, best_chromosome):
+            best_chromosome = best_chromosome_candidate
 
         mating_pool = selection_method(population, fitness_function_values, 4)
 
         population = crossover_method(mating_pool, number_of_offsprings=8)
 
         population = mutation_method(population, mutation_percentage)
+        
+        fitness_function_values = calculate_population_fitness(population, chromosome_base)
+        
+        best_chromosome_candidate = choose_best_chromosome(population, fitness_function_values)
+        
+        if fitness_function(chromosome_base, best_chromosome_candidate) > fitness_function(chromosome_base, best_chromosome):
+            best_chromosome = best_chromosome_candidate
+        
+    # fitness_function_values = calculate_population_fitness(population, chromosome_base)
+    # chromosome_candidate = choose_best_chromosome(population, fitness_function_values)
+    # reproduced_image = chromosome2imgRGB(chromosome_candidate, img_shape)
+    best_reproduced_image = chromosome2imgRGB(best_chromosome, img_shape)
 
-    fitness_function_values = calculate_population_fitness(population, chromosome_base)
-
-    chromosome_candidate = choose_best_chromosome(population, fitness_function_values)
-    reproduced_image = chromosome2imgRGB(chromosome_candidate, img_shape)
-
-    return reproduced_image
+    return best_reproduced_image
 
 
 # function which connects algorithm implementation with gui
