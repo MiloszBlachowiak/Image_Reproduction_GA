@@ -48,11 +48,6 @@ def reproduce_image(image_path: str, iter_num: int, selection_method, crossover_
     for iter in range(iter_num):
 
         fitness_function_values = calculate_population_fitness(population, chromosome_base)
-        
-        best_chromosome_candidate = choose_best_chromosome(population, fitness_function_values)
-        
-        if fitness_function(chromosome_base, best_chromosome_candidate) > fitness_function(chromosome_base, best_chromosome):
-            best_chromosome = best_chromosome_candidate
 
         mating_pool = selection_method(population, fitness_function_values, 4)
 
