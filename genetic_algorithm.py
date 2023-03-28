@@ -35,7 +35,7 @@ def choose_best_chromosome(population, qualities):
     return population[best_idx]
 
 
-def reproduce_image(image_path: str, iter_num: int, selection_function, crossover_function, crossover_method, mutation_function,
+def reproduce_image(image_path: str, iter_num: int, selection_function, crossover_method, mutation_function,
                     mutation_percentage, epsilon=10**(-12), terminate_after=500):
     img = cv2.imread(image_path)
 
@@ -55,7 +55,7 @@ def reproduce_image(image_path: str, iter_num: int, selection_function, crossove
 
         mating_pool = selection_function(population, fitness_function_values, 4)
 
-        population = crossover_function(mating_pool, crossover_method, number_of_offsprings=8)
+        population = crossover.perform_crossover(mating_pool, crossover_method, number_of_offsprings=8)
 
         population = mutation_function(population, mutation_percentage)
         
@@ -93,13 +93,12 @@ def run_program():
     reproduced_image_path = None
     num_of_iterations = 15000
     mutation_percentage = 0.01
-    selection_function = selection.tournament
-    crossover_function = crossover.perform_crossover
+    selection_function = selection.rank
     crossover_method = "single_point"
     mutation_function = mutation.random_swap
 
 
-    reproduced_image = reproduce_image(image_path, num_of_iterations, selection_function, crossover_function,
-                                       crossover_method, mutation_function, mutation_percentage)
+    reproduced_image = reproduce_image(image_path, num_of_iterations, selection_function, crossover_method,
+                                       mutation_function, mutation_percentage)
 
     cv2.imwrite('reproduced_image.jpg', reproduced_image)

@@ -7,7 +7,7 @@ from math import ceil
 # single operation of single-point crossover
 def single_point(parent_one: np.ndarray, parent_two: np.ndarray):
 
-    size = parent_one.size
+    size = min(parent_one.size, parent_two.size)
     point = np.random.randint(1, size)
 
     offspring_one = np.append(parent_one[:point], parent_two[point:])
@@ -18,7 +18,7 @@ def single_point(parent_one: np.ndarray, parent_two: np.ndarray):
 
 # single operation of two-point crossover
 def two_point(parent_one: np.ndarray, parent_two: np.ndarray):
-    size = parent_one.size
+    size = min(parent_one.size, parent_two.size)
 
     # randomly picking two crossover points
     points = np.random.choice(range(1, size), 2, replace=False)
@@ -32,22 +32,20 @@ def two_point(parent_one: np.ndarray, parent_two: np.ndarray):
 
 # single operation of uniform crossover
 def uniform(parent_one: np.ndarray, parent_two: np.ndarray):
-    size = parent_one.size
+    size = min(parent_one.size, parent_two.size)
 
     # randomly picking half the genes' ids
     genes = np.random.choice(range(size), int(size/2), replace=False)
     genes = sorted(genes)
 
-    offspring_one = np.zeros((size))
-    offspring_two = np.zeros((size))
+    offspring_one = np.copy(parent_one)
+    offspring_two = np.copy(parent_two)
+
+    crossover_mask = np.random.randint(0, 2, size)
 
     for i in range(size):
-        if i in genes:
-            offspring_one[i] = parent_one[i]
-            offspring_two[i] = parent_two[i]
-        else:
-            offspring_one[i] = parent_two[i]
-            offspring_two[i] = parent_one[i]
+        if crossover_mask[i] == 1:
+            offspring_one[i], offspring_two[i] = offspring_two[i], offspring_one[i]
 
     return offspring_one, offspring_two
 
