@@ -69,6 +69,8 @@ def perform_crossover(mating_pool: np.ndarray, method: str="single_point", numbe
             offspring_one, offspring_two = single_point(mating_pool[parents_pair[0]], mating_pool[parents_pair[1]])
         elif method == "two_point":
             offspring_one, offspring_two = two_point(mating_pool[parents_pair[0]], mating_pool[parents_pair[1]])
+        elif method == "uniform":
+            offspring_one, offspring_two = uniform(mating_pool[parents_pair[0]], mating_pool[parents_pair[1]])
 
         offsprings.append(offspring_one)
         offsprings.append(offspring_two)
