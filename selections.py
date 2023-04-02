@@ -2,7 +2,7 @@ import numpy as np
 
 # source: https://rocreguant.com/roulette-wheel-selection-python/2019/
 
-class Selection:
+class Selections:
     def __init__(self):
         pass
 

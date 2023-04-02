@@ -4,7 +4,7 @@ from itertools import combinations
 from math import ceil
 
 
-class CrossoverForPixels:
+class Crossovers:
     def __init__(self):
         pass
 
@@ -85,8 +85,3 @@ class CrossoverForPixels:
             offsprings.pop(np.random.randint(len(offsprings)))
 
         return np.array(offsprings)
-
-
-class CrossoverForTriangles:
-    def __init__(self):
-        pass

@@ -2,7 +2,7 @@
 import numpy as np
     
 
-class MutationsForPixels:
+class Mutations:
     def __init__(self):
         pass
 
@@ -53,8 +53,3 @@ class MutationsForPixels:
                 first, second = min(rand_idx), max(rand_idx)
                 population[idx, first:second] = np.array(list(population[idx, first:second])[::-1])
         return population
-
-
-class MutationsForTriangles:
-    def __init__(self):
-        pass

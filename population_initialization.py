@@ -3,7 +3,7 @@
 import numpy as np
 
 
-class PopulationInitializationForPixels:
+class PopulationInitializations:
     def __init__(self):
         pass
 
@@ -23,8 +23,3 @@ class PopulationInitializationForPixels:
              population[indv_num] = np.random.random(size_chromosom)*256
 
         return population
-
-
-class PopulationInitializationForTriangles:
-    def __init__(self):
-        pass
