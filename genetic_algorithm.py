@@ -39,6 +39,7 @@ class ImageReproductionForPixels:
 
         self.termination_cond_iter = 0
 
+
     def fitness_function(self, img_array: np.array, chromosome_array: np.array) -> float:
         return np.sum(img_array) - np.mean(np.abs(img_array - chromosome_array))
 
