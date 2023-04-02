@@ -23,22 +23,25 @@ def choose_best_chromosome(population, qualities):
     return population[best_idx]
 
 
-class ImageReproductionForPixels:
-    def __init__(self, iter_num, mutation_percentage, epsilon=10**(-12), terminate_after=500):
-        self.population_init_functions = PopulationInitializationForPixels()
-        self.selection_functions = Selection()
-        self.crossover_methods = CrossoverForPixels()
-        self.mutation_functions = MutationsForPixels()
-
-        self.number_of_offsprings = 8
-        self.number_of_parents = 4
+class PixelsReproductionData:
+    def __init__(self, image, iter_num, selection_methods, crossover_methods, mutation_methods, number_of_parents,
+                 number_of_offsprings, mutation_percentage, epsilon, terminate_after):
+        self.image = image
         self.iter_num = iter_num
+        self.population_init_method = PopulationInitializationForPixels().random
+        self.selection_methods = selection_methods
+        self.crossover_methods = crossover_methods
+        self.mutation_methods = mutation_methods
+        self.number_of_parents = number_of_parents
+        self.number_of_offsprings = number_of_offsprings
         self.mutation_percentage = mutation_percentage
         self.epsilon = epsilon
         self.terminate_after = terminate_after
 
+class ImageReproductionForPixels:
+    def __init__(self, pixelsReproductionData: PixelsReproductionData):
+        self.data = pixelsReproductionData
         self.termination_cond_iter = 0
-
 
     def fitness_function(self, img_array: np.array, chromosome_array: np.array) -> float:
         return np.sum(img_array) - np.mean(np.abs(img_array - chromosome_array))
@@ -51,38 +54,37 @@ class ImageReproductionForPixels:
         return fitness_function_values
 
     def is_termination_condition_fulfilled(self, fitness_value_new, fitness_value_best):
-        if fitness_value_new - fitness_value_best < self.epsilon:
+        if fitness_value_new - fitness_value_best < self.data.epsilon:
             self.termination_cond_iter += 1
         else:
             self.termination_cond_iter = 0
 
-        if self.termination_cond_iter == self.terminate_after:
+        if self.termination_cond_iter == self.data.terminate_after:
             return True
 
         return False
 
     def perform_selection(self, population, qualities):
-        return self.selection_functions.rank(population, qualities, self.number_of_parents)
+        selection_fun = np.random.choice(self.data.selection_methods)
+        return selection_fun(population, qualities, self.data.number_of_parents)
 
-    def perform_crossover(self, mating_pool: np.ndarray):
-        method = "single_point"
-        return self.crossover_methods.perform_crossover(mating_pool, method, self.number_of_offsprings)
+    def perform_crossover(self, mating_pool):
+        crossover_fun = np.random.choice(self.data.crossover_methods)
+        return CrossoverForPixels.perform_crossover(mating_pool, crossover_fun, self.data.number_of_offsprings)
 
     def perform_mutation(self, population):
-        return self.mutation_functions.replacement(population, self.mutation_percentage)
+        mutation_fun = np.random.choice(self.data.mutation_methods)
+        return mutation_fun(population, self.data.mutation_percentage)
 
-    def reproduce_image(self, image_path: str):
-        img = cv2.imread(image_path)
+    def reproduce_image(self):
 
-        img_shape = img.shape
+        chromosome_base = imgRGB2chromosome(self.data.image)
 
-        chromosome_base = imgRGB2chromosome(img)
-
-        population = self.population_init_functions.random(img.shape)
+        population = self.data.population_init_method(self.data.image.shape)
 
         best_chromosome = population[0]
 
-        for iter in range(self.iter_num):
+        for iter in range(self.data.iter_num):
 
             fitness_function_values = self.calculate_population_fitness(population, chromosome_base)
 
@@ -106,7 +108,7 @@ class ImageReproductionForPixels:
             if (self.is_termination_condition_fulfilled(fitness_value_new, fitness_value_best)):
                 break
 
-        best_reproduced_image = chromosome2imgRGB(best_chromosome, img_shape)
+        best_reproduced_image = chromosome2imgRGB(best_chromosome, self.data.image.shape)
 
         return best_reproduced_image
 
@@ -118,12 +120,24 @@ class ImageReproductionForTriangles:
 
 def run_program():
     # read parameters
-    image_path = "tangerines.jpg"
     reproduced_image_path = None
+    image_path = "tangerines.jpg"
+    img = cv2.imread(image_path)
     num_of_iterations = 15000
+    selection_methods = [Selection.rank]  # list of lambdas
+    crossover_methods = [CrossoverForPixels.single_point]
+    mutation_methods = [MutationsForPixels.replacement]
+    number_of_parents = 4
+    number_of_offsprings = 8
     mutation_percentage = 0.01
+    epsilon = 10 ** (-12)
+    terminate_after = 500
 
-    pixelsReproduction = ImageReproductionForPixels(num_of_iterations, mutation_percentage)
-    reproduced_image = pixelsReproduction.reproduce_image(image_path)
+    pixelsReproductionParams = PixelsReproductionData(img, num_of_iterations, selection_methods, crossover_methods,
+                                                      mutation_methods, number_of_parents, number_of_offsprings,
+                                                      mutation_percentage, epsilon, terminate_after)
+
+    pixelsReproduction = ImageReproductionForPixels(pixelsReproductionParams)
+    reproduced_image = pixelsReproduction.reproduce_image()
 
     cv2.imwrite('reproduced_image.jpg', reproduced_image)

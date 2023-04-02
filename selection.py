@@ -6,18 +6,21 @@ class Selection:
     def __init__(self):
         pass
 
-    def roulette_wheel(self, population, qualities, number_of_parents):
+    @staticmethod
+    def roulette_wheel(population, qualities, number_of_parents):
         indices_mask = np.arange(qualities.shape[0])
         population_fitness = np.sum(qualities)
         individual_probabilities = qualities / population_fitness
         chosen_idx = np.random.choice(indices_mask, size=number_of_parents, replace=False, p=individual_probabilities)
         return population[np.sort(chosen_idx)]
 
-    def rank(self, population, qualities, number_of_parents):
+    @staticmethod
+    def rank(population, qualities, number_of_parents):
         ranking_id = np.argsort(np.dot(qualities, -1))
         return population[ranking_id][:number_of_parents]
 
-    def tournament(self, population, qualities, number_of_parents):
+    @staticmethod
+    def tournament(population, qualities, number_of_parents):
         parents = np.zeros((tuple([number_of_parents] + list(population.shape[1:]))))
         population_groups = np.array_split(population, number_of_parents)
         qualities_groups = np.array_split(qualities, number_of_parents)
