@@ -4,10 +4,10 @@ import cv2
 import numpy as np
 from typing import Tuple
 
-import crossover
-import mutation
-import population_initialization
-import selection
+from selection import Selection
+from crossover import CrossoverForPixels, CrossoverForTriangles
+from mutation import MutationsForPixels, MutationsForTriangles
+from population_initialization import PopulationInitializationForPixels, PopulationInitializationForTriangles
 
 
 def imgRGB2chromosome(img: np.array) -> np.array:
@@ -18,87 +18,111 @@ def chromosome2imgRGB(chromosome: np.array, img_shape: Tuple[int, ...]) -> np.ar
     return np.reshape(chromosome, img_shape)
 
 
-def fitness_function(img_array: np.array, chromosome_array: np.array) -> float:
-    return np.sum(img_array) - np.mean(np.abs(img_array - chromosome_array))
-
-
-def calculate_population_fitness(population, chromosome_base):
-    fitness_function_values = np.zeros(population.shape[0])
-    for individual_idx in range(population.shape[0]):
-        chromosome_candidate = population[individual_idx]
-        fitness_function_values[individual_idx] = fitness_function(chromosome_base, chromosome_candidate)
-    return fitness_function_values
-
-
 def choose_best_chromosome(population, qualities):
     best_idx = np.argmax(qualities)
     return population[best_idx]
 
 
-def reproduce_image(image_path: str, iter_num: int, selection_function, crossover_method, mutation_function,
-                    mutation_percentage, epsilon=10**(-12), terminate_after=500):
-    img = cv2.imread(image_path)
+class ImageReproductionForPixels:
+    def __init__(self, iter_num, mutation_percentage, epsilon=10**(-12), terminate_after=500):
+        self.population_init_functions = PopulationInitializationForPixels()
+        self.selection_functions = Selection()
+        self.crossover_methods = CrossoverForPixels()
+        self.mutation_functions = MutationsForPixels()
 
-    img_shape = img.shape
+        self.number_of_offsprings = 8
+        self.number_of_parents = 4
+        self.iter_num = iter_num
+        self.mutation_percentage = mutation_percentage
+        self.epsilon = epsilon
+        self.terminate_after = terminate_after
 
-    chromosome_base = imgRGB2chromosome(img)
+        self.termination_cond_iter = 0
 
-    population = population_initialization.random(img.shape)
-   
-    best_chromosome = population[0]
+    def fitness_function(self, img_array: np.array, chromosome_array: np.array) -> float:
+        return np.sum(img_array) - np.mean(np.abs(img_array - chromosome_array))
 
-    termination_cond_iter = 0
+    def calculate_population_fitness(self, population, chromosome_base):
+        fitness_function_values = np.zeros(population.shape[0])
+        for individual_idx in range(population.shape[0]):
+            chromosome_candidate = population[individual_idx]
+            fitness_function_values[individual_idx] = self.fitness_function(chromosome_base, chromosome_candidate)
+        return fitness_function_values
 
-    for iter in range(iter_num):
-
-        fitness_function_values = calculate_population_fitness(population, chromosome_base)
-
-        mating_pool = selection_function(population, fitness_function_values, 4)
-
-        population = crossover.perform_crossover(mating_pool, crossover_method, number_of_offsprings=8)
-
-        population = mutation_function(population, mutation_percentage)
-        
-        fitness_function_values = calculate_population_fitness(population, chromosome_base)
-        
-        best_chromosome_candidate = choose_best_chromosome(population, fitness_function_values)
-        
-        fitness_value_best = fitness_function(chromosome_base, best_chromosome)
-        fitness_value_new = fitness_function(chromosome_base, best_chromosome_candidate)
-
-        if fitness_value_new > fitness_value_best:
-            best_chromosome = best_chromosome_candidate
-
-        # termination condition
-        if fitness_value_new - fitness_value_best < epsilon:
-            termination_cond_iter += 1
+    def is_termination_condition_fulfilled(self, fitness_value_new, fitness_value_best):
+        if fitness_value_new - fitness_value_best < self.epsilon:
+            self.termination_cond_iter += 1
         else:
-            termination_cond_iter = 0
+            self.termination_cond_iter = 0
 
-        if termination_cond_iter == terminate_after:
-            break
-        
-    # fitness_function_values = calculate_population_fitness(population, chromosome_base)
-    # chromosome_candidate = choose_best_chromosome(population, fitness_function_values)
-    # reproduced_image = chromosome2imgRGB(chromosome_candidate, img_shape)
-    best_reproduced_image = chromosome2imgRGB(best_chromosome, img_shape)
+        if self.termination_cond_iter == self.terminate_after:
+            return True
 
-    return best_reproduced_image
+        return False
+
+    def perform_selection(self, population, qualities):
+        return self.selection_functions.rank(population, qualities, self.number_of_parents)
+
+    def perform_crossover(self, mating_pool: np.ndarray):
+        method = "single_point"
+        return self.crossover_methods.perform_crossover(mating_pool, method, self.number_of_offsprings)
+
+    def perform_mutation(self, population):
+        return self.mutation_functions.replacement(population, self.mutation_percentage)
+
+    def reproduce_image(self, image_path: str):
+        img = cv2.imread(image_path)
+
+        img_shape = img.shape
+
+        chromosome_base = imgRGB2chromosome(img)
+
+        population = self.population_init_functions.random(img.shape)
+
+        best_chromosome = population[0]
+
+        for iter in range(self.iter_num):
+
+            fitness_function_values = self.calculate_population_fitness(population, chromosome_base)
+
+            mating_pool = self.perform_selection(population, fitness_function_values)
+
+            population = self.perform_crossover(mating_pool)
+
+            population = self.perform_mutation(population)
+
+            fitness_function_values = self.calculate_population_fitness(population, chromosome_base)
+
+            best_chromosome_candidate = choose_best_chromosome(population, fitness_function_values)
+
+            fitness_value_best = self.fitness_function(chromosome_base, best_chromosome)
+            fitness_value_new = self.fitness_function(chromosome_base, best_chromosome_candidate)
+
+            if fitness_value_new > fitness_value_best:
+                best_chromosome = best_chromosome_candidate
+
+            # termination condition
+            if (self.is_termination_condition_fulfilled(fitness_value_new, fitness_value_best)):
+                break
+
+        best_reproduced_image = chromosome2imgRGB(best_chromosome, img_shape)
+
+        return best_reproduced_image
 
 
-# function which connects algorithm implementation with gui
+class ImageReproductionForTriangles:
+    def __init__(self):
+        pass
+
+
 def run_program():
     # read parameters
     image_path = "tangerines.jpg"
     reproduced_image_path = None
     num_of_iterations = 15000
     mutation_percentage = 0.01
-    selection_function = selection.rank
-    crossover_method = "single_point"
-    mutation_function = mutation.random_swap
 
-
-    reproduced_image = reproduce_image(image_path, num_of_iterations, selection_function, crossover_method,
-                                       mutation_function, mutation_percentage)
+    pixelsReproduction = ImageReproductionForPixels(num_of_iterations, mutation_percentage)
+    reproduced_image = pixelsReproduction.reproduce_image(image_path)
 
     cv2.imwrite('reproduced_image.jpg', reproduced_image)
