@@ -43,17 +43,17 @@ class ImageReproduction:
         best_idx = np.argmax(qualities)
         return population[best_idx]
 
-    def fitness_function_for_pixels(self, img_array: np.array, chromosome_array: np.array) -> float:
-        return np.sum(img_array) - np.mean(np.abs(img_array - chromosome_array))
-
-    def fitness_function_for_triangles(self, chromosome_base, chromosome_candidate, shape_weights):
-        return np.sum(chromosome_base * shape_weights) - np.mean(np.abs((chromosome_base - chromosome_candidate) * shape_weights))
+    def fitness_function_for_shapes(self, chromosome_base, chromosome_candidate, shape_weights=None):
+        if shape_weights is None:
+            return np.sum(img_array) - np.mean(np.abs(img_array - chromosome_array))
+        else:
+            return np.sum(chromosome_base * shape_weights) - np.mean(np.abs((chromosome_base - chromosome_candidate) * shape_weights))
 
     def calculate_population_fitness(self, population, chromosome_base):
         fitness_function_values = np.zeros(population.shape[0])
         for individual_idx in range(population.shape[0]):
             chromosome_candidate = population[individual_idx]
-            fitness_function_values[individual_idx] = self.fitness_function_for_pixels(chromosome_base, chromosome_candidate)
+            fitness_function_values[individual_idx] = self.fitness_function_for_shapes(chromosome_base, chromosome_candidate)
         return fitness_function_values
 
     def is_termination_condition_fulfilled(self, fitness_value_new, fitness_value_best):
@@ -101,8 +101,8 @@ class ImageReproduction:
 
             best_chromosome_candidate = self.choose_best_chromosome(population, fitness_function_values)
 
-            fitness_value_best = self.fitness_function_for_pixels(chromosome_base, best_chromosome)
-            fitness_value_new = self.fitness_function_for_pixels(chromosome_base, best_chromosome_candidate)
+            fitness_value_best = self.fitness_function_for_shapes(chromosome_base, best_chromosome)
+            fitness_value_new = self.fitness_function_for_shapes(chromosome_base, best_chromosome_candidate)
 
             if fitness_value_new > fitness_value_best:
                 best_chromosome = best_chromosome_candidate
