@@ -46,8 +46,8 @@ class ImageReproduction:
     def fitness_function_for_pixels(self, img_array: np.array, chromosome_array: np.array) -> float:
         return np.sum(img_array) - np.mean(np.abs(img_array - chromosome_array))
 
-    def fitness_function_for_triangles(self):
-        raise NotImplementedError
+    def fitness_function_for_triangles(self, chromosome_base, chromosome_candidate, shape_weights):
+        return np.sum(chromosome_base * shape_weights) - np.mean(np.abs((chromosome_base - chromosome_candidate) * shape_weights))
 
     def calculate_population_fitness(self, population, chromosome_base):
         fitness_function_values = np.zeros(population.shape[0])
