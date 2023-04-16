@@ -154,7 +154,7 @@ class ImageReproduction:
 def run_program():
     # read parameters
     reproduced_image_path = None
-    image_path = "najman.jpg"
+    image_path = "tangerines.jpg"
     img = cv2.imread(image_path)
     num_of_iterations = 10000
     selection_methods = [Selections.tournament]  # list of lambdas
