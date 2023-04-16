@@ -14,7 +14,7 @@ class Crossovers:
 
         size = min(parent_one.size, parent_two.size)
         point = np.random.randint(1, size)
-
+        
         offspring_one = np.append(parent_one[:point], parent_two[point:])
         offspring_two = np.append(parent_two[:point], parent_one[point:])
 
@@ -69,12 +69,6 @@ class Crossovers:
             parents_pair = parents_pairs_permutations[pair_id]
 
             offspring_one, offspring_two = crossover_method(mating_pool[parents_pair[0]], mating_pool[parents_pair[1]])
-            # if method == "single_point":
-            #     offspring_one, offspring_two = self.single_point(mating_pool[parents_pair[0]], mating_pool[parents_pair[1]])
-            # elif method == "two_point":
-            #     offspring_one, offspring_two = self.two_point(mating_pool[parents_pair[0]], mating_pool[parents_pair[1]])
-            # elif method == "uniform":
-            #     offspring_one, offspring_two = self.uniform(mating_pool[parents_pair[0]], mating_pool[parents_pair[1]])
 
             offsprings.append(offspring_one)
             offsprings.append(offspring_two)

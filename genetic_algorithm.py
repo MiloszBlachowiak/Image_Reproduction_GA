@@ -8,11 +8,12 @@ from selections import Selections
 from crossover import Crossovers
 from mutation import Mutations
 from population_initialization import PopulationInitializations
+from triangulation import Triangulation
 
 
 class ReproductionData:
     def __init__(self, image, iter_num, selection_methods, crossover_methods, mutation_methods, number_of_parents,
-                 number_of_offsprings, mutation_percentage, epsilon, terminate_after):
+                 number_of_offsprings, mutation_percentage, epsilon, terminate_after, enable_triangulation, n_points=None):
         self.image = image
         self.iter_num = iter_num
         self.population_init_method = PopulationInitializations().random
@@ -24,30 +25,57 @@ class ReproductionData:
         self.mutation_percentage = mutation_percentage
         self.epsilon = epsilon
         self.terminate_after = terminate_after
+        self.enable_triangulation = enable_triangulation
+
+        self.n_points = n_points
+        self.image_tri = None
+        self.triangle_weights = None
 
 class ImageReproduction:
     def __init__(self, pixelsReproductionData: ReproductionData):
         self.data = pixelsReproductionData
         self.termination_cond_iter = 0
 
-    def image_triangulation(self):
-        raise NotImplementedError
+    def triangulate_image(self):
+        self.data.image_tri = Triangulation()
+        self.data.image_tri.triangulate(self.data.image, self.data.n_points)
+        weights = self.data.image_tri.get_triangle_weights(self.data.image)
+        weights = weights / np.max(weights) #normalization
+        self.data.triangle_weights = np.concatenate([[weights[i]] * 3 for i in range(len(weights))]) # 3x because of R, G and B components
 
-    def imgRGB2chromosome(self, img: np.array) -> np.array:
-        return np.reshape(img, -1)
+    def imgRGB2chromosome(self) -> np.array:
+        if self.data.enable_triangulation:
+            self.triangulate_image()
+            colours = self.data.image_tri.get_triangle_colour(self.data.image)
+            return np.reshape(colours, -1)
+        else:
+            return np.reshape(self.data.image, -1)
 
-    def chromosome2imgRGB(self, chromosome: np.array, img_shape: Tuple[int, ...]) -> np.array:
-        return np.reshape(chromosome, img_shape)
+    def chromosome2imgRGB(self, chromosome) -> np.array:
+        if self.data.enable_triangulation:
+            colours = np.reshape(chromosome, (-1, 3))
+
+            final_image = np.zeros(self.data.image.shape)
+            simplex = self.data.image_tri.get_simplex(self.data.image)
+            pixel_coords = self.data.image_tri.get_pixel_coords(self.data.image.shape[:2])
+            for idx, coord in enumerate(pixel_coords):
+                triangle_id = simplex[idx]
+                colour = colours[triangle_id, :]
+                final_image[coord[1], coord[0], :] = colour
+            return final_image
+        else:
+            return np.reshape(chromosome, self.data.image.shape)
 
     def choose_best_chromosome(self, population, qualities):
         best_idx = np.argmax(qualities)
         return population[best_idx]
 
-    def fitness_function_for_shapes(self, chromosome_base, chromosome_candidate, shape_weights=None):
-        if shape_weights is None:
-            return np.sum(img_array) - np.mean(np.abs(img_array - chromosome_array))
+    def fitness_function_for_shapes(self, chromosome_base, chromosome_candidate):
+        if self.data.enable_triangulation:
+            weights = self.data.triangle_weights
+            return np.sum(chromosome_base * weights) - np.mean(np.abs(chromosome_base - chromosome_candidate) * weights)
         else:
-            return np.sum(chromosome_base * shape_weights) - np.mean(np.abs((chromosome_base - chromosome_candidate) * shape_weights))
+            return np.sum(chromosome_base) - np.mean(np.abs(chromosome_base - chromosome_candidate))
 
     def calculate_population_fitness(self, population, chromosome_base):
         fitness_function_values = np.zeros(population.shape[0])
@@ -81,10 +109,11 @@ class ImageReproduction:
 
     def reproduce_image(self):
 
-        chromosome_base = self.imgRGB2chromosome(self.data.image)
+        print("Started the algorithm...")
 
-        population = self.data.population_init_method(self.data.image.shape)
+        chromosome_base = self.imgRGB2chromosome()    
 
+        population = self.data.population_init_method(len(chromosome_base), self.data.number_of_offsprings)
         best_chromosome = population[0]
 
         for iter in range(self.data.iter_num):
@@ -92,9 +121,7 @@ class ImageReproduction:
             fitness_function_values = self.calculate_population_fitness(population, chromosome_base)
 
             mating_pool = self.perform_selection(population, fitness_function_values)
-
             population = self.perform_crossover(mating_pool)
-
             population = self.perform_mutation(population)
 
             fitness_function_values = self.calculate_population_fitness(population, chromosome_base)
@@ -104,6 +131,7 @@ class ImageReproduction:
             fitness_value_best = self.fitness_function_for_shapes(chromosome_base, best_chromosome)
             fitness_value_new = self.fitness_function_for_shapes(chromosome_base, best_chromosome_candidate)
 
+
             if fitness_value_new > fitness_value_best:
                 best_chromosome = best_chromosome_candidate
 
@@ -111,7 +139,14 @@ class ImageReproduction:
             if (self.is_termination_condition_fulfilled(fitness_value_new, fitness_value_best)):
                 break
 
-        best_reproduced_image = self.chromosome2imgRGB(best_chromosome, self.data.image.shape)
+        # save original triangulated image (for comparison)
+        if self.data.enable_triangulation:
+            original_triangulated = self.chromosome2imgRGB(chromosome_base)
+            cv2.imwrite('original_triangulated.jpg', original_triangulated)
+
+        best_reproduced_image = self.chromosome2imgRGB(best_chromosome)
+
+        print("Finished!")
 
         return best_reproduced_image
 
@@ -119,21 +154,27 @@ class ImageReproduction:
 def run_program():
     # read parameters
     reproduced_image_path = None
-    image_path = "tangerines.jpg"
+    image_path = "najman.jpg"
     img = cv2.imread(image_path)
-    num_of_iterations = 15000
-    selection_methods = [Selections.rank]  # list of lambdas
+    num_of_iterations = 10000
+    selection_methods = [Selections.tournament]  # list of lambdas
     crossover_methods = [Crossovers.single_point]
-    mutation_methods = [Mutations.replacement]
+    mutation_methods = [Mutations.random_swap]
+
     number_of_parents = 4
     number_of_offsprings = 8
+
     mutation_percentage = 0.01
     epsilon = 10 ** (-12)
     terminate_after = 500
 
+    # Triangularization parameters
+    enable_triangulation = True
+    n_points = 1800
+
     pixelsReproductionParams = ReproductionData(img, num_of_iterations, selection_methods, crossover_methods,
                                                 mutation_methods, number_of_parents, number_of_offsprings,
-                                                mutation_percentage, epsilon, terminate_after)
+                                                mutation_percentage, epsilon, terminate_after, enable_triangulation, n_points)
 
     pixelsReproduction = ImageReproduction(pixelsReproductionParams)
     reproduced_image = pixelsReproduction.reproduce_image()

@@ -7,13 +7,7 @@ class PopulationInitializations:
     def __init__(self):
         pass
 
-    def random(self, img_size, number_individuals=10):
-        if len(img_size) == 2:
-          # For grayscale images
-          size_chromosom = img_size[0]*img_size[1]
-        else:
-          # For color images
-          size_chromosom = img_size[0]*img_size[1]*3
+    def random(self, size_chromosom, number_individuals=10):
 
         # Creating an empty list to hold individuals
         population = np.empty(shape=(number_individuals, size_chromosom), dtype=np.uint8)
