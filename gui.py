@@ -1,5 +1,12 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QMessageBox, QFileDialog
 from PyQt5 import uic
+
+from selections import Selections
+from crossover import Crossovers
+from mutation import Mutations
+import cv2
+from genetic_algorithm import ReproductionData, ImageReproduction
 
 class Ui_MainWindow_triangles(object):
 
@@ -63,6 +70,63 @@ class Ui_MainWindow_pixels(object):
         self.ui.setupUi(self.window)
         self.window.show()
 
+    def updateProgressBar(self, value):
+        self.progressBar.setValue(value)
+
+    def importImage(self):
+        importedFile = QFileDialog.getOpenFileName()
+        self.filePath = importedFile[0]
+        print(self.filePath)
+
+    def enableBittonStartAlg(self):
+        selectionMethod = list([self.checkBox_rank.isChecked(), self.checkBox_roulette.isChecked(), self.checkBox_tournament.isChecked()])
+        crossoverMethod = list([self.checkBox_single_point.isChecked(), self.checkBox_two_point.isChecked(), self.checkBox_uniform.isChecked()])
+        mutationMethod = [self.checkBox_replacment.isChecked(), self.checkBox_random_swap.isChecked(), self.checkBox_adjacent_swap.isChecked()]
+
+        if True in selectionMethod and True in crossoverMethod and True in mutationMethod and self.filePath != None:
+            self.pushButton_start_algorithm.setEnabled(True)
+    def startAlgorithm(self):
+        selectionMethod = list([self.checkBox_rank.isChecked(), self.checkBox_roulette.isChecked(), self.checkBox_tournament.isChecked()])
+        selectionMethodLamb = list([Selections.rank, Selections.roulette_wheel, Selections.tournament])
+        selectionMethodInput = list([selectionMethodLamb[id] for i, id in enumerate(selectionMethod) if i])
+
+        crossoverMethod = list([self.checkBox_single_point.isChecked(), self.checkBox_two_point.isChecked(), self.checkBox_uniform.isChecked()])
+        crossoverMethodLamb = list([Crossovers.single_point, Crossovers.two_point, Crossovers.uniform])
+        crossoverMethodInput = list([crossoverMethodLamb[id] for i, id in enumerate(crossoverMethod) if i])
+
+        mutationMethod = [self.checkBox_replacment.isChecked(), self.checkBox_random_swap.isChecked(), self.checkBox_adjacent_swap.isChecked()]
+        mutationMethodLamb = list([Mutations.replacement, Mutations.random_swap, Mutations.adjacent_swap])
+        mutationMethodInput = list([mutationMethodLamb[id] for i, id in enumerate(mutationMethod) if i])
+
+        if not(True in selectionMethod and True in crossoverMethod and True in mutationMethod):
+            message = QMessageBox()
+            message.setText("Verify methods")
+            message.exec_()
+        else:
+            numOfGen = int(self.lineEdit_num_gen.text())
+            mutPercent = float(self.lineEdit_mut_percent.text())
+            numOfParents = int(self.lineEdit_num_parents.text())
+            numOfOffsprings = int(self.lineEdit_num_offsprings.text())
+            epsajlon = float(self.lineEdit_epsilon.text())
+            iterTermination = int(self.lineEdit_term_iterations.text())
+            enableTriangulation = False
+            n_points = 1800
+
+            self.progressBar.setMinimum(0)
+            self.progressBar.setMaximum(numOfGen)
+
+            img = cv2.imread(self.filePath)
+
+            pixelsReproductionParams = ReproductionData(img, numOfGen, selectionMethodInput, crossoverMethodInput,
+                                                    mutationMethodInput, numOfParents, numOfOffsprings,
+                                                    mutPercent, epsajlon, iterTermination, enableTriangulation, n_points)
+
+            pixelsReproduction = ImageReproduction(pixelsReproductionParams)
+            reproduced_image = pixelsReproduction.reproduce_image()
+
+            cv2.imwrite('reproduced_image.jpg', reproduced_image)
+            cv2.imshow("reproduced_image", reproduced_image)
+
     def setupUi(self, MainWindow_pixels):
         MainWindow_pixels.setObjectName("MainWindow_pixels")
         MainWindow_pixels.resize(774, 589)
@@ -102,6 +166,7 @@ class Ui_MainWindow_pixels(object):
         self.checkBox_roulette.setFont(font)
         self.checkBox_roulette.setObjectName("checkBox_roulette")
         self.checkBox_rank = QtWidgets.QCheckBox(self.centralwidget)
+        self.checkBox_rank.setChecked(True)
         self.checkBox_rank.setGeometry(QtCore.QRect(70, 110, 81, 20))
         font = QtGui.QFont()
         font.setPointSize(10)
@@ -114,6 +179,7 @@ class Ui_MainWindow_pixels(object):
         self.checkBox_tournament.setFont(font)
         self.checkBox_tournament.setObjectName("checkBox_tournament")
         self.checkBox_single_point = QtWidgets.QCheckBox(self.centralwidget)
+        self.checkBox_single_point.setChecked(True)
         self.checkBox_single_point.setGeometry(QtCore.QRect(290, 70, 151, 31))
         font = QtGui.QFont()
         font.setPointSize(10)
@@ -132,6 +198,7 @@ class Ui_MainWindow_pixels(object):
         self.checkBox_two_point.setFont(font)
         self.checkBox_two_point.setObjectName("checkBox_two_point")
         self.checkBox_replacment = QtWidgets.QCheckBox(self.centralwidget)
+        self.checkBox_replacment.setChecked(True)
         self.checkBox_replacment.setGeometry(QtCore.QRect(520, 70, 151, 31))
         font = QtGui.QFont()
         font.setPointSize(10)
@@ -203,14 +270,16 @@ class Ui_MainWindow_pixels(object):
         font.setWeight(75)
         self.label_selection_term_cond.setFont(font)
         self.label_selection_term_cond.setObjectName("label_selection_term_cond")
-        self.pushButton_import_image = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_import_image = QtWidgets.QPushButton(self.centralwidget,  clicked = lambda: self.importImage())
+        self.pushButton_import_image.clicked.connect(self.enableBittonStartAlg)
         self.pushButton_import_image.setGeometry(QtCore.QRect(570, 250, 191, 71))
         font = QtGui.QFont()
         font.setPointSize(12)
         self.pushButton_import_image.setFont(font)
         self.pushButton_import_image.setObjectName("pushButton_import_image")
-        self.pushButton_start_algorithm = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_start_algorithm = QtWidgets.QPushButton(self.centralwidget,  clicked = lambda: self.startAlgorithm())
         self.pushButton_start_algorithm.setGeometry(QtCore.QRect(500, 340, 261, 81))
+        self.pushButton_start_algorithm.setEnabled(False)
         font = QtGui.QFont()
         font.setPointSize(12)
         self.pushButton_start_algorithm.setFont(font)
@@ -259,7 +328,7 @@ class Ui_MainWindow_pixels(object):
         font.setPointSize(10)
         self.progressBar.setFont(font)
         self.progressBar.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.progressBar.setProperty("value", 24)
+        self.progressBar.setProperty("value", 0)
         self.progressBar.setObjectName("progressBar")
         self.pushButton_return_to_menu = QtWidgets.QPushButton(self.centralwidget,  clicked = lambda: self.openWindow_main())
         self.pushButton_return_to_menu.clicked.connect(MainWindow_pixels.close)
