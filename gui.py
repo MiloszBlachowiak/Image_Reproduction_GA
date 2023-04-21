@@ -8,6 +8,8 @@ from mutation import Mutations
 import numpy as np
 import cv2
 from genetic_algorithm import ReproductionData, ImageReproduction
+import matplotlib
+import matplotlib.pyplot as plt
 
 class Ui_MainWindow_triangles(object):
 
@@ -67,7 +69,10 @@ class Ui_MainWindow_triangles(object):
             reproduced_image = pixelsReproduction.reproduce_image()
 
             cv2.imwrite('reproduced_image.jpg', reproduced_image)
-            cv2.imshow("reproduced_image", reproduced_image)
+
+            reproduced_image_read = cv2.imread('reproduced_image.jpg')
+            cv2.imshow("reproduced_image", reproduced_image_read)
+
 
     def setupUi(self, MainWindow_triangles):
         self.filePath = None
@@ -434,7 +439,9 @@ class Ui_MainWindow_pixels(object):
             reproduced_image = pixelsReproduction.reproduce_image()
 
             cv2.imwrite('reproduced_image.jpg', reproduced_image)
-            cv2.imshow("reproduced_image", reproduced_image)
+
+            reproduced_image_read = cv2.imread('reproduced_image.jpg')
+            cv2.imshow("reproduced_image", reproduced_image_read)
 
     def setupUi(self, MainWindow_pixels):
         self.filePath = None
