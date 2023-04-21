@@ -1,7 +1,7 @@
-from genetic_algorithm import run_program
+from gui import run_gui
 
 def main():
-    run_program()
+    run_gui()
 
 
 if __name__ == '__main__':

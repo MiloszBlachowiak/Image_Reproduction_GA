@@ -5,6 +5,7 @@ from PyQt5 import uic
 from selections import Selections
 from crossover import Crossovers
 from mutation import Mutations
+import numpy as np
 import cv2
 from genetic_algorithm import ReproductionData, ImageReproduction
 
@@ -22,24 +23,24 @@ class Ui_MainWindow_triangles(object):
         print(self.filePath)
 
     def enableBittonStartAlg(self):
-        selectionMethod = list([self.checkBox_rank.isChecked(), self.checkBox_roulette.isChecked(), self.checkBox_tournament.isChecked()])
-        crossoverMethod = list([self.checkBox_single_point.isChecked(), self.checkBox_two_point.isChecked(), self.checkBox_uniform.isChecked()])
+        selectionMethod = [self.checkBox_rank.isChecked(), self.checkBox_roulette.isChecked(), self.checkBox_tournament.isChecked()]
+        crossoverMethod = [self.checkBox_single_point.isChecked(), self.checkBox_two_point.isChecked(), self.checkBox_uniform.isChecked()]
         mutationMethod = [self.checkBox_replacment.isChecked(), self.checkBox_random_swap.isChecked(), self.checkBox_adjacent_swap.isChecked()]
 
         if True in selectionMethod and True in crossoverMethod and True in mutationMethod and self.filePath != None:
             self.pushButton_start_algorithm.setEnabled(True)
     def startAlgorithm(self):
-        selectionMethod = list([self.checkBox_rank.isChecked(), self.checkBox_roulette.isChecked(), self.checkBox_tournament.isChecked()])
-        selectionMethodLamb = list([Selections.rank, Selections.roulette_wheel, Selections.tournament])
-        selectionMethodInput = list([selectionMethodLamb[id] for i, id in enumerate(selectionMethod) if i])
+        selectionMethod = [self.checkBox_rank.isChecked(), self.checkBox_roulette.isChecked(), self.checkBox_tournament.isChecked()]
+        selectionMethodLamb = np.array([Selections.rank, Selections.roulette_wheel, Selections.tournament])
+        selectionMethodInput = selectionMethodLamb[selectionMethod]
 
-        crossoverMethod = list([self.checkBox_single_point.isChecked(), self.checkBox_two_point.isChecked(), self.checkBox_uniform.isChecked()])
-        crossoverMethodLamb = list([Crossovers.single_point, Crossovers.two_point, Crossovers.uniform])
-        crossoverMethodInput = list([crossoverMethodLamb[id] for i, id in enumerate(crossoverMethod) if i])
+        crossoverMethod = [self.checkBox_single_point.isChecked(), self.checkBox_two_point.isChecked(), self.checkBox_uniform.isChecked()]
+        crossoverMethodLamb = np.array([Crossovers.single_point, Crossovers.two_point, Crossovers.uniform])
+        crossoverMethodInput = crossoverMethodLamb[crossoverMethod]
 
         mutationMethod = [self.checkBox_replacment.isChecked(), self.checkBox_random_swap.isChecked(), self.checkBox_adjacent_swap.isChecked()]
-        mutationMethodLamb = list([Mutations.replacement, Mutations.random_swap, Mutations.adjacent_swap])
-        mutationMethodInput = list([mutationMethodLamb[id] for i, id in enumerate(mutationMethod) if i])
+        mutationMethodLamb = np.array([Mutations.replacement, Mutations.random_swap, Mutations.adjacent_swap])
+        mutationMethodInput = mutationMethodLamb[mutationMethod]
 
         if not(True in selectionMethod and True in crossoverMethod and True in mutationMethod):
             message = QMessageBox()
@@ -60,6 +61,7 @@ class Ui_MainWindow_triangles(object):
             pixelsReproductionParams = ReproductionData(img, numOfGen, selectionMethodInput, crossoverMethodInput,
                                                     mutationMethodInput, numOfParents, numOfOffsprings,
                                                     mutPercent, epsajlon, iterTermination, enableTriangulation, n_points)
+            pixelsReproductionParams.log_data()
 
             pixelsReproduction = ImageReproduction(pixelsReproductionParams)
             reproduced_image = pixelsReproduction.reproduce_image()
@@ -385,24 +387,24 @@ class Ui_MainWindow_pixels(object):
         print(self.filePath)
 
     def enableBittonStartAlg(self):
-        selectionMethod = list([self.checkBox_rank.isChecked(), self.checkBox_roulette.isChecked(), self.checkBox_tournament.isChecked()])
-        crossoverMethod = list([self.checkBox_single_point.isChecked(), self.checkBox_two_point.isChecked(), self.checkBox_uniform.isChecked()])
+        selectionMethod = [self.checkBox_rank.isChecked(), self.checkBox_roulette.isChecked(), self.checkBox_tournament.isChecked()]
+        crossoverMethod = [self.checkBox_single_point.isChecked(), self.checkBox_two_point.isChecked(), self.checkBox_uniform.isChecked()]
         mutationMethod = [self.checkBox_replacment.isChecked(), self.checkBox_random_swap.isChecked(), self.checkBox_adjacent_swap.isChecked()]
 
         if True in selectionMethod and True in crossoverMethod and True in mutationMethod and self.filePath != None:
             self.pushButton_start_algorithm.setEnabled(True)
     def startAlgorithm(self):
-        selectionMethod = list([self.checkBox_rank.isChecked(), self.checkBox_roulette.isChecked(), self.checkBox_tournament.isChecked()])
-        selectionMethodLamb = list([Selections.rank, Selections.roulette_wheel, Selections.tournament])
-        selectionMethodInput = list([selectionMethodLamb[id] for i, id in enumerate(selectionMethod) if i])
+        selectionMethod = [self.checkBox_rank.isChecked(), self.checkBox_roulette.isChecked(), self.checkBox_tournament.isChecked()]
+        selectionMethodLamb = np.array([Selections.rank, Selections.roulette_wheel, Selections.tournament])
+        selectionMethodInput = selectionMethodLamb[selectionMethod]
 
-        crossoverMethod = list([self.checkBox_single_point.isChecked(), self.checkBox_two_point.isChecked(), self.checkBox_uniform.isChecked()])
-        crossoverMethodLamb = list([Crossovers.single_point, Crossovers.two_point, Crossovers.uniform])
-        crossoverMethodInput = list([crossoverMethodLamb[id] for i, id in enumerate(crossoverMethod) if i])
+        crossoverMethod = [self.checkBox_single_point.isChecked(), self.checkBox_two_point.isChecked(), self.checkBox_uniform.isChecked()]
+        crossoverMethodLamb = np.array([Crossovers.single_point, Crossovers.two_point, Crossovers.uniform])
+        crossoverMethodInput = crossoverMethodLamb[crossoverMethod]
 
         mutationMethod = [self.checkBox_replacment.isChecked(), self.checkBox_random_swap.isChecked(), self.checkBox_adjacent_swap.isChecked()]
-        mutationMethodLamb = list([Mutations.replacement, Mutations.random_swap, Mutations.adjacent_swap])
-        mutationMethodInput = list([mutationMethodLamb[id] for i, id in enumerate(mutationMethod) if i])
+        mutationMethodLamb = np.array([Mutations.replacement, Mutations.random_swap, Mutations.adjacent_swap])
+        mutationMethodInput = mutationMethodLamb[mutationMethod]
 
         if not(True in selectionMethod and True in crossoverMethod and True in mutationMethod):
             message = QMessageBox()
@@ -426,6 +428,7 @@ class Ui_MainWindow_pixels(object):
             pixelsReproductionParams = ReproductionData(img, numOfGen, selectionMethodInput, crossoverMethodInput,
                                                     mutationMethodInput, numOfParents, numOfOffsprings,
                                                     mutPercent, epsajlon, iterTermination, enableTriangulation, n_points)
+            pixelsReproductionParams.log_data()
 
             pixelsReproduction = ImageReproduction(pixelsReproductionParams)
             reproduced_image = pixelsReproduction.reproduce_image()
@@ -809,5 +812,3 @@ def run_gui():
     ui.setupUi(MainWindow_main)
     MainWindow_main.show()
     app.exec_()
-
-run_gui()

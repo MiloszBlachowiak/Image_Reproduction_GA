@@ -31,6 +31,23 @@ class ReproductionData:
         self.image_tri = None
         self.triangle_weights = None
 
+    def log_data(self):
+        print("iter_num: ", self.iter_num)
+        print("population_init_method: ", self.population_init_method)
+        print("selection_methods: ", self.selection_methods)
+        print("crossover_methods: ", self.crossover_methods)
+        print("mutation_methods: ", self.mutation_methods)
+        print("number_of_parents: ", self.number_of_parents)
+        print("number_of_offsprings: ", self.number_of_offsprings)
+        print("mutation_percentage: ", self.mutation_percentage)
+        print("epsilon: ", self.epsilon)
+        print("terminate_after: ", self.terminate_after)
+        print("enable_triangulation: ", self.enable_triangulation)
+        print("n_points: ", self.n_points)
+        print("image_tri: ", self.image_tri)
+        print("triangle_weights: ", self.triangle_weights)
+
+
 class ImageReproduction:
     def __init__(self, pixelsReproductionData: ReproductionData):
         self.data = pixelsReproductionData
