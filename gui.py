@@ -68,6 +68,7 @@ class Ui_MainWindow_triangles(object):
             cv2.imshow("reproduced_image", reproduced_image)
 
     def setupUi(self, MainWindow_triangles):
+        self.filePath = None
         MainWindow_triangles.setObjectName("MainWindow_triangles")
         MainWindow_triangles.resize(796, 582)
         self.centralwidget = QtWidgets.QWidget(MainWindow_triangles)
@@ -433,6 +434,7 @@ class Ui_MainWindow_pixels(object):
             cv2.imshow("reproduced_image", reproduced_image)
 
     def setupUi(self, MainWindow_pixels):
+        self.filePath = None
         MainWindow_pixels.setObjectName("MainWindow_pixels")
         MainWindow_pixels.resize(774, 589)
         self.centralwidget = QtWidgets.QWidget(MainWindow_pixels)
